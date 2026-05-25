@@ -15,6 +15,9 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- D3.js and TopoJSON for 3D Globe -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -31,12 +34,6 @@
                             beige: '#F3EFE9',   // Warm beige for feature cards
                             blue: '#D2E6F9',    // Light powder blue for callouts
                             bluedark: '#AECDF0' // Darker blue for callout borders/accents
-                        },
-                        status: {
-                            high_bg: '#EAF6ED',
-                            high_txt: '#1E8E3E',
-                            sys_bg: '#F3E8FF',
-                            sys_txt: '#7E22CE',
                         }
                     },
                     animation: {
@@ -94,7 +91,7 @@
             transform: translateX(8px);
         }
 
-        /* Particles Animation for Problem Section (Constantly Running) */
+        /* Box Animations for Problem Section */
         .box-animation-container {
             position: relative;
             width: 100%;
@@ -112,14 +109,37 @@
         .dots-scattered { position: absolute; inset: 0; display: flex; flex-wrap: wrap; gap: 10px; padding: 20px; }
         .dots-scattered span { width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0.6; position: absolute; animation: float 3s infinite alternate ease-in-out; }
         
-        /* Connections */
+        /* Connections Animation */
         .dots-connected { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-        .dots-connected svg { width: 80%; height: 80%; stroke: rgba(255,255,255,0.4); stroke-width: 1.5; fill: none; }
-        .dots-connected circle { fill: white; animation: pulse-slow 2s infinite alternate; }
+        .dots-connected svg { width: 80%; height: 80%; }
+        .anim-line {
+            stroke: rgba(255,255,255,0.3);
+            stroke-width: 1.5;
+            stroke-dasharray: 6 6;
+            animation: dashFlow 3s linear infinite;
+        }
+        .anim-node {
+            fill: white;
+            animation: nodePulse 2s infinite alternate ease-in-out;
+        }
+        @keyframes dashFlow {
+            to { stroke-dashoffset: -24; }
+        }
+        @keyframes nodePulse {
+            0% { transform: scale(0.8); filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)); }
+            100% { transform: scale(1.4); filter: drop-shadow(0 0 8px rgba(255,255,255,1)); }
+        }
         
-        /* Orchestration */
+        /* Orchestration Animation */
         .dots-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; place-items: center; }
-        .dots-grid span { width: 8px; height: 8px; background: #005C66; border-radius: 2px; box-shadow: 0 0 8px #005C66; animation: pulse-slow 3s infinite alternate; }
+        .anim-grid-dot { 
+            width: 8px; height: 8px; background: #005C66; border-radius: 2px; 
+            animation: gridPulse 2.5s infinite; 
+        }
+        @keyframes gridPulse {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); box-shadow: none; }
+            50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 8px #005C66; }
+        }
 
         /* Workflow Flowing Line */
         .flow-line {
@@ -141,7 +161,19 @@
             .flow-line { display: none; }
         }
 
-        /* Explainer Animation */
+        /* Popup UI Fades */
+        @keyframes popupFade {
+            0%, 5% { opacity: 0; transform: translateY(10px) scale(0.95); }
+            15%, 40% { opacity: 1; transform: translateY(0) scale(1); }
+            50%, 100% { opacity: 0; transform: translateY(-10px) scale(0.95); }
+        }
+        
+        /* Sync Popups */
+        .anim-popup-1 { animation: popupFade 12s infinite 0s; }
+        .anim-popup-2 { animation: popupFade 12s infinite 4s; }
+        .anim-popup-3 { animation: popupFade 12s infinite 8s; }
+        
+        /* Data Flow Arrow Explainer */
         .data-flow-arrow {
             animation: moveRight 1.5s infinite linear;
         }
@@ -156,32 +188,32 @@
 
     <!-- Navigation -->
     <nav class="fixed top-0 left-0 right-0 z-50 bg-brand-bg/90 backdrop-blur-md border-b border-gray-200 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <a href="https://www.lunartree.bio" class="flex items-center gap-3 text-brand-dark font-bold text-2xl tracking-tight hover:opacity-80 transition-opacity">
-                <img src="lunartree_logo.jpeg" class="w-8 h-8 rounded-md" alt="Lunartree Logo">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between">
+            <a href="https://www.lunartree.bio" class="flex items-center gap-2 md:gap-3 text-brand-dark font-bold text-xl md:text-2xl tracking-tight hover:opacity-80 transition-opacity">
+                <img src="lunartree_logo.jpeg" class="w-6 h-6 md:w-8 md:h-8 rounded-md" alt="Lunartree Logo">
                 Lunartree
             </a>
-            <a href="mailto:vedant@lunartree.bio" class="bg-brand-primary hover:bg-brand-dark text-white px-5 py-2.5 rounded-md font-medium text-sm transition-all shadow-sm hover:shadow-md flex items-center gap-2 transform hover:-translate-y-0.5">
-                Book Demo <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            <a href="mailto:vedant@lunartree.bio" class="bg-brand-primary hover:bg-brand-dark text-white px-4 md:px-5 py-2 md:py-2.5 rounded-md font-medium text-xs md:text-sm transition-all shadow-sm hover:shadow-md flex items-center gap-2 transform hover:-translate-y-0.5">
+                Book Demo <i data-lucide="arrow-right" class="w-3 h-3 md:w-4 md:h-4"></i>
             </a>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="pt-40 pb-20 px-6 max-w-5xl mx-auto text-center reveal">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-brand-blue text-brand-primary mb-8 border border-brand-bluedark/30 hover:scale-105 transition-transform cursor-default">
-            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-primary"></i>
+    <section class="pt-32 pb-16 md:pt-40 md:pb-20 px-4 sm:px-6 max-w-5xl mx-auto text-center reveal">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold uppercase tracking-wider bg-brand-blue text-brand-primary mb-6 md:mb-8 border border-brand-bluedark/30 hover:scale-105 transition-transform cursor-default">
+            <i data-lucide="sparkles" class="w-3 h-3 md:w-3.5 md:h-3.5 text-brand-primary"></i>
             AI Demand Gen for Life Sciences
         </div>
-        <h1 class="text-5xl md:text-7xl font-bold text-brand-dark tracking-tight mb-6 leading-[1.15]">
+        <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold text-brand-dark tracking-tight mb-4 md:mb-6 leading-[1.15]">
             Better Commercial Timing.<br> 
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-accent">Orchestrated with AI.</span>
         </h1>
-        <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-10 leading-relaxed">
+        <p class="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-8 md:mb-10 leading-relaxed">
             Move beyond manual research and disjointed outreach. Lunartree's intelligence layer helps commercial teams organize fragmented segment data to identify the right companies, track precise buying signals, and engage at the perfect moment.
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="mailto:vedant@lunartree.bio" class="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-brand-primary hover:bg-brand-dark text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1 group">
+            <a href="mailto:vedant@lunartree.bio" class="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-brand-primary hover:bg-brand-dark text-white px-6 md:px-8 py-3.5 md:py-4 rounded-lg font-semibold text-base md:text-lg transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1 group">
                 Book Demo 
                 <i data-lucide="chevron-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
             </a>
@@ -189,26 +221,26 @@
     </section>
 
     <!-- Trust Layer / Social Proof -->
-    <section class="py-10 border-y border-gray-200 bg-white reveal">
-        <div class="max-w-7xl mx-auto px-6 text-center">
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-6">Built by experts & deployed across the life sciences ecosystem</p>
-            <div class="flex flex-wrap justify-center items-center gap-10 md:gap-16 opacity-70">
-                <img src="https://www.drupal.org/files/styles/grid-4-2x/public/iitblogo.png?itok=j_tE0rYu" alt="IIT Bombay" class="h-10 md:h-12 object-contain filter grayscale hover:grayscale-0 transition-all duration-300 hover:opacity-100 hover:scale-110 cursor-pointer">
-                <img src="https://upload.wikimedia.org/wikipedia/sa/6/66/IIT_Delhi_logo.png" alt="IIT Delhi" class="h-10 md:h-12 object-contain filter grayscale hover:grayscale-0 transition-all duration-300 hover:opacity-100 hover:scale-110 cursor-pointer">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJ2BBNOj1sEe_W016ML5qfQ8A4Ll5fAQ61og&s" alt="Goldman Sachs" class="h-7 md:h-9 object-contain filter grayscale hover:grayscale-0 transition-all duration-300 hover:opacity-100 hover:scale-110 cursor-pointer">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Iqvia-logo-color.svg/3840px-Iqvia-logo-color.svg.png" alt="IQVIA" class="h-6 md:h-7 object-contain filter grayscale hover:grayscale-0 transition-all duration-300 hover:opacity-100 hover:scale-110 cursor-pointer">
-                <img src="https://images-www.contentful.com/jtqsy5pye0zd/Ca00ZHGs22GLPSKag3ko9/ab17bf526e9534958d9e34bfa293742b/merkle_logo_blue.png" alt="Merkle" class="h-5 md:h-6 object-contain filter grayscale hover:grayscale-0 transition-all duration-300 hover:opacity-100 hover:scale-110 cursor-pointer">
+    <section class="py-8 md:py-10 border-y border-gray-200 bg-white reveal">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center">
+            <p class="text-[10px] md:text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4 md:mb-6">Built by experts & deployed across the life sciences ecosystem</p>
+            <div class="flex flex-wrap justify-center items-center gap-6 sm:gap-10 md:gap-16 opacity-70">
+                <img src="https://www.drupal.org/files/styles/grid-4-2x/public/iitblogo.png?itok=j_tE0rYu" alt="IIT Bombay" class="h-8 sm:h-10 md:h-12 object-contain filter grayscale hover:grayscale-0 transition-all duration-300 hover:opacity-100 hover:scale-110 cursor-pointer">
+                <img src="https://upload.wikimedia.org/wikipedia/sa/6/66/IIT_Delhi_logo.png" alt="IIT Delhi" class="h-8 sm:h-10 md:h-12 object-contain filter grayscale hover:grayscale-0 transition-all duration-300 hover:opacity-100 hover:scale-110 cursor-pointer">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJ2BBNOj1sEe_W016ML5qfQ8A4Ll5fAQ61og&s" alt="Goldman Sachs" class="h-6 sm:h-7 md:h-9 object-contain filter grayscale hover:grayscale-0 transition-all duration-300 hover:opacity-100 hover:scale-110 cursor-pointer">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Iqvia-logo-color.svg/3840px-Iqvia-logo-color.svg.png" alt="IQVIA" class="h-5 sm:h-6 md:h-7 object-contain filter grayscale hover:grayscale-0 transition-all duration-300 hover:opacity-100 hover:scale-110 cursor-pointer">
+                <img src="https://images-www.contentful.com/jtqsy5pye0zd/Ca00ZHGs22GLPSKag3ko9/ab17bf526e9534958d9e34bfa293742b/merkle_logo_blue.png" alt="Merkle" class="h-4 sm:h-5 md:h-6 object-contain filter grayscale hover:grayscale-0 transition-all duration-300 hover:opacity-100 hover:scale-110 cursor-pointer">
             </div>
         </div>
     </section>
 
     <!-- The Problem / Transition Animation -->
-    <section class="py-24 bg-brand-bg reveal">
-        <div class="max-w-6xl mx-auto px-6 text-center">
-            <h2 class="text-3xl font-bold text-brand-dark mb-4">The Commercial Challenge</h2>
-            <p class="text-lg text-gray-600 mb-16 max-w-2xl mx-auto">Most BD teams operate in a fragmented landscape. Research is disconnected from timing, and timing is disconnected from action. <span class="font-semibold text-brand-primary">We fix that.</span></p>
+    <section class="py-16 md:py-24 bg-brand-bg reveal">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center">
+            <h2 class="text-2xl md:text-3xl font-bold text-brand-dark mb-3 md:mb-4">The Commercial Challenge</h2>
+            <p class="text-base md:text-lg text-gray-600 mb-10 md:mb-16 max-w-2xl mx-auto">Most BD teams operate in a fragmented landscape. Research is disconnected from timing, and timing is disconnected from action. <span class="font-semibold text-brand-primary">We fix that.</span></p>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                 <!-- Fragmentation -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 text-left hover:shadow-md transition-shadow">
                     <h3 class="text-xl font-semibold text-gray-600">01. Fragmentation</h3>
@@ -236,11 +268,11 @@
                         <div class="absolute inset-0 bg-gradient-to-br from-transparent to-black/10"></div>
                         <div class="dots-connected">
                             <svg viewBox="0 0 100 100">
-                                <polyline points="20,30 50,50 80,20 60,80 20,30" />
-                                <circle cx="20" cy="30" r="3" />
-                                <circle cx="50" cy="50" r="4" />
-                                <circle cx="80" cy="20" r="3" />
-                                <circle cx="60" cy="80" r="3.5" />
+                                <polyline points="20,30 50,50 80,20 60,80 20,30" class="anim-line" fill="none" />
+                                <circle cx="20" cy="30" r="3" class="anim-node" style="animation-delay: 0s; transform-origin: 20px 30px;" />
+                                <circle cx="50" cy="50" r="4" class="anim-node" style="animation-delay: 0.5s; transform-origin: 50px 50px;" />
+                                <circle cx="80" cy="20" r="3" class="anim-node" style="animation-delay: 1s; transform-origin: 80px 20px;" />
+                                <circle cx="60" cy="80" r="3.5" class="anim-node" style="animation-delay: 1.5s; transform-origin: 60px 80px;" />
                             </svg>
                         </div>
                     </div>
@@ -253,9 +285,26 @@
                     <div class="box-animation-container">
                         <div class="absolute inset-0 bg-gradient-to-br from-transparent to-black/10"></div>
                         <div class="dots-grid">
-                            <span></span><span></span><span></span><span></span><span></span><span></span>
-                            <span></span><span></span><span></span><span></span><span></span><span></span>
-                            <span></span><span></span><span></span><span></span><span></span><span></span>
+                            <span class="anim-grid-dot" style="animation-delay: 0.1s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 0.2s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 0.3s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 0.4s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 0.5s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 0.6s"></span>
+                            
+                            <span class="anim-grid-dot" style="animation-delay: 0.7s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 0.8s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 0.9s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 1.0s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 1.1s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 1.2s"></span>
+                            
+                            <span class="anim-grid-dot" style="animation-delay: 1.3s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 1.4s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 1.5s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 1.6s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 1.7s"></span>
+                            <span class="anim-grid-dot" style="animation-delay: 1.8s"></span>
                         </div>
                     </div>
                 </div>
@@ -264,57 +313,108 @@
     </section>
 
     <!-- Workflow Section -->
-    <section class="py-24 border-b border-gray-200 bg-white reveal overflow-hidden">
-        <div class="max-w-7xl mx-auto px-6">
-            <h2 class="text-3xl md:text-5xl font-bold text-center text-brand-dark mb-16 leading-tight">From Fragmented Data to <br><span class="text-brand-primary">Genuine High Intent Actions</span></h2>
+    <section class="py-16 md:py-24 border-b border-gray-200 bg-white reveal overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <h2 class="text-3xl md:text-5xl font-bold text-center text-brand-dark mb-8 md:mb-12 leading-tight">From Fragmented Data to <br><span class="text-brand-primary">Genuine High Intent Actions</span></h2>
             
-            <div class="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-0">
-                <div class="flow-line"></div>
+            <!-- High-Fidelity 3D Wireframe Globe -->
+            <div class="relative w-full max-w-3xl mx-auto h-[300px] md:h-[350px] mb-8 md:mb-12 flex items-center justify-center mt-4 md:mt-0">
+                
+                <!-- Globe Mount Point -->
+                <div id="globe-container" class="relative w-[260px] h-[260px] sm:w-[300px] sm:h-[300px] md:w-[400px] md:h-[400px]">
+                    
+                    <!-- Floating Deal Intelligence Popups -->
+                    <div class="absolute inset-0 z-40 pointer-events-none w-full h-full">
+                        <!-- Popup 1 -->
+                        <div class="absolute anim-popup-1 -left-[10%] md:-left-[25%] top-[5%] md:top-[10%]">
+                            <div class="bg-white px-3 md:px-4 py-2 md:py-3 rounded-xl shadow-xl border-l-4 border-brand-primary flex flex-col gap-1 min-w-[140px] md:min-w-[170px] scale-[0.85] sm:scale-90 md:scale-100 origin-top-left">
+                                <div class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <span class="w-1.5 md:w-2 h-1.5 md:h-2 rounded-full bg-brand-primary animate-pulse"></span> New Signal
+                                </div>
+                                <div class="font-bold text-brand-dark text-sm md:text-base leading-tight">Arcturus Biotek</div>
+                                <div class="text-brand-primary font-semibold text-[10px] md:text-xs flex items-center gap-1 mt-0.5">
+                                    <i data-lucide="zap" class="w-2.5 h-2.5 md:w-3 md:h-3"></i> 98 Intent Score
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Popup 2 -->
+                        <div class="absolute anim-popup-2 -right-[10%] md:right-auto md:left-[70%] top-[0%] md:top-[5%]">
+                            <div class="bg-white px-3 md:px-4 py-2 md:py-3 rounded-xl shadow-xl border-l-4 border-brand-primary flex flex-col gap-1 min-w-[140px] md:min-w-[170px] scale-[0.85] sm:scale-90 md:scale-100 origin-top-right md:origin-top-left">
+                                <div class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <span class="w-1.5 md:w-2 h-1.5 md:h-2 rounded-full bg-brand-primary animate-pulse"></span> Clinical Milestone
+                                </div>
+                                <div class="font-bold text-brand-dark text-sm md:text-base leading-tight">NovaBridge CMO</div>
+                                <div class="text-brand-primary font-semibold text-[10px] md:text-xs flex items-center gap-1 mt-0.5">
+                                    <i data-lucide="zap" class="w-2.5 h-2.5 md:w-3 md:h-3"></i> 92 Intent Score
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Popup 3 -->
+                        <div class="absolute anim-popup-3 -right-[15%] md:right-auto md:left-[80%] top-[60%] md:top-[50%]">
+                            <div class="bg-white px-3 md:px-4 py-2 md:py-3 rounded-xl shadow-xl border-l-4 border-brand-primary flex flex-col gap-1 min-w-[140px] md:min-w-[170px] scale-[0.85] sm:scale-90 md:scale-100 origin-bottom-right md:origin-top-left">
+                                <div class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <span class="w-1.5 md:w-2 h-1.5 md:h-2 rounded-full bg-brand-primary animate-pulse"></span> Funding Alert
+                                </div>
+                                <div class="font-bold text-brand-dark text-sm md:text-base leading-tight">Helix Biologics</div>
+                                <div class="text-brand-primary font-semibold text-[10px] md:text-xs flex items-center gap-1 mt-0.5">
+                                    <i data-lucide="zap" class="w-2.5 h-2.5 md:w-3 md:h-3"></i> 87 Intent Score
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Horizontal Cards Step Process -->
+            <div class="flex flex-col lg:flex-row items-stretch justify-between gap-6 md:gap-8 relative z-0 mt-8 md:mt-12">
+                <div class="flow-line hidden lg:block"></div>
                 
                 <!-- Step 1 -->
-                <div class="relative w-full lg:w-1/3 bg-brand-bg border border-gray-200 rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow group z-10">
-                    <div class="w-14 h-14 bg-white rounded-full border border-gray-200 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand-blue transition-all shadow-sm mx-auto lg:mx-0">
-                        <i data-lucide="globe" class="w-6 h-6 text-brand-primary"></i>
+                <div class="relative w-full lg:w-1/3 bg-brand-bg border border-gray-200 rounded-xl p-6 md:p-8 shadow-sm hover:shadow-md transition-shadow group z-10 flex flex-col h-full">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-white rounded-full border border-gray-200 flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 group-hover:bg-brand-blue transition-all shadow-sm mx-auto lg:mx-0 shrink-0">
+                        <i data-lucide="globe" class="w-5 h-5 md:w-6 md:h-6 text-brand-primary"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-brand-dark mb-3 text-center lg:text-left">Discoverability & TAM Visibility</h3>
-                    <p class="text-sm text-gray-600 text-center lg:text-left leading-relaxed">Uncover the true addressable market by synthesizing fragmented public, proprietary, and commercial data streams.</p>
+                    <h3 class="text-lg md:text-xl font-bold text-brand-dark mb-2 md:mb-3 text-center lg:text-left">Discoverability & TAM Visibility</h3>
+                    <p class="text-xs md:text-sm text-gray-600 text-center lg:text-left leading-relaxed flex-grow">Uncover the true addressable market by synthesizing fragmented public, proprietary, and commercial data streams.</p>
                 </div>
                 
                 <!-- Step 2 -->
-                <div class="relative w-full lg:w-1/3 bg-brand-bg border border-gray-200 rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow group z-10">
-                    <div class="w-14 h-14 bg-white rounded-full border border-gray-200 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand-blue transition-all shadow-sm mx-auto lg:mx-0">
-                        <i data-lucide="cpu" class="w-6 h-6 text-brand-primary"></i>
+                <div class="relative w-full lg:w-1/3 bg-brand-bg border border-gray-200 rounded-xl p-6 md:p-8 shadow-sm hover:shadow-md transition-shadow group z-10 flex flex-col h-full">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-white rounded-full border border-gray-200 flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 group-hover:bg-brand-blue transition-all shadow-sm mx-auto lg:mx-0 shrink-0">
+                        <i data-lucide="cpu" class="w-5 h-5 md:w-6 md:h-6 text-brand-primary"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-brand-dark mb-3 text-center lg:text-left">AI Prioritization</h3>
-                    <p class="text-sm text-gray-600 text-center lg:text-left leading-relaxed">Filter out noise and rank accounts based on exact clinical milestones, targeted hiring, and critical funding signals.</p>
+                    <h3 class="text-lg md:text-xl font-bold text-brand-dark mb-2 md:mb-3 text-center lg:text-left">AI Prioritization</h3>
+                    <p class="text-xs md:text-sm text-gray-600 text-center lg:text-left leading-relaxed flex-grow">Filter out noise and rank accounts based on exact clinical milestones, targeted hiring, and critical funding signals.</p>
                 </div>
 
                 <!-- Step 3 -->
-                <div class="relative w-full lg:w-1/3 bg-brand-bg border border-gray-200 rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow group z-10">
-                    <div class="w-14 h-14 bg-white rounded-full border border-gray-200 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-status-high_bg transition-all shadow-sm mx-auto lg:mx-0">
-                        <i data-lucide="target" class="w-6 h-6 text-status-high_txt"></i>
+                <div class="relative w-full lg:w-1/3 bg-brand-bg border border-gray-200 rounded-xl p-6 md:p-8 shadow-sm hover:shadow-md transition-shadow group z-10 flex flex-col h-full">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-white rounded-full border border-gray-200 flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 group-hover:bg-brand-blue transition-all shadow-sm mx-auto lg:mx-0 shrink-0">
+                        <i data-lucide="target" class="w-5 h-5 md:w-6 md:h-6 text-brand-primary"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-brand-dark mb-3 text-center lg:text-left">Genuine High Intent Actions</h3>
-                    <p class="text-sm text-gray-600 text-center lg:text-left leading-relaxed">Equip BD teams with timed, hyper-relevant outreach tailored perfectly to the buyer's immediate operational needs.</p>
+                    <h3 class="text-lg md:text-xl font-bold text-brand-dark mb-2 md:mb-3 text-center lg:text-left">Genuine High Intent Actions</h3>
+                    <p class="text-xs md:text-sm text-gray-600 text-center lg:text-left leading-relaxed flex-grow">Equip BD teams with timed, hyper-relevant outreach tailored perfectly to the buyer's immediate operational needs.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Core Features Section -->
-    <section class="py-24 max-w-7xl mx-auto px-6 space-y-32">
+    <section class="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 space-y-20 md:space-y-32">
         
         <!-- Feature 1: TAM Visibility -->
-        <div class="flex flex-col lg:flex-row items-center gap-16 group reveal">
-            <div class="lg:w-1/2 space-y-6">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider bg-brand-beige text-brand-dark border border-gray-200 shadow-sm">
-                    <i data-lucide="target" class="w-4 h-4 text-brand-primary"></i> Prospect Search & Fit
+        <div class="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 group reveal">
+            <div class="lg:w-1/2 space-y-4 md:space-y-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] md:text-xs font-bold uppercase tracking-wider bg-brand-beige text-brand-dark border border-gray-200 shadow-sm">
+                    <i data-lucide="target" class="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary"></i> Prospect Search & Fit
                 </div>
-                <h2 class="text-3xl md:text-4xl font-bold text-brand-dark leading-tight">
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-dark leading-tight">
                     See your true addressable universe.
                 </h2>
                 
-                <ul class="feature-list space-y-4 text-gray-700 mt-6">
+                <ul class="feature-list space-y-3 md:space-y-4 text-sm md:text-base text-gray-700 mt-4 md:mt-6">
                     <li class="flex items-start gap-3">
                         <i data-lucide="dna" class="w-5 h-5 text-brand-primary mt-0.5 shrink-0"></i>
                         <span><strong>Modality & Therapy Fit:</strong> Target exact indications and drug profiles.</span>
@@ -333,27 +433,27 @@
                     </li>
                 </ul>
 
-                <div class="bg-brand-blue/40 border-l-4 border-brand-primary p-5 rounded-r-lg mt-6 transform transition hover:translate-x-1">
-                    <p class="text-brand-dark"><span class="font-bold">The Payoff:</span> Increase pipeline volume by up to 3x by surfacing your entire addressable market instantly.</p>
+                <div class="bg-brand-blue/40 border-l-4 border-brand-primary p-4 md:p-5 rounded-r-lg mt-4 md:mt-6 transform transition hover:translate-x-1">
+                    <p class="text-brand-dark text-sm md:text-base"><span class="font-bold">The Payoff:</span> Increase pipeline volume by up to 3x by surfacing your entire addressable market instantly.</p>
                 </div>
             </div>
-            <div class="lg:w-1/2 relative">
-                <div class="absolute inset-0 bg-brand-blue/30 rounded-3xl transform rotate-3 scale-105 transition-transform duration-500 group-hover:rotate-6"></div>
+            <div class="lg:w-1/2 relative w-full">
+                <div class="absolute inset-0 bg-brand-blue/30 rounded-2xl md:rounded-3xl transform rotate-3 scale-105 transition-transform duration-500 group-hover:rotate-6"></div>
                 <img src="https://res.cloudinary.com/dnscrocre/image/upload/v1779566613/ChatGPT_Image_May_20_2026_01_50_39_PM_dujqjs.png" alt="TAM Visibility Dashboard" class="relative rounded-xl ui-shadow border border-gray-200/50 bg-white transform transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] z-10 w-full object-cover">
             </div>
         </div>
 
         <!-- Feature 2: Signal Monitoring -->
-        <div class="flex flex-col lg:flex-row-reverse items-center gap-16 group reveal">
-            <div class="lg:w-1/2 space-y-6">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider bg-brand-beige text-brand-dark border border-gray-200 shadow-sm">
-                    <i data-lucide="activity" class="w-4 h-4 text-brand-primary"></i> Live Monitoring
+        <div class="flex flex-col lg:flex-row-reverse items-center gap-8 lg:gap-16 group reveal">
+            <div class="lg:w-1/2 space-y-4 md:space-y-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] md:text-xs font-bold uppercase tracking-wider bg-brand-beige text-brand-dark border border-gray-200 shadow-sm">
+                    <i data-lucide="activity" class="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary"></i> Live Monitoring
                 </div>
-                <h2 class="text-3xl md:text-4xl font-bold text-brand-dark leading-tight">
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-dark leading-tight">
                     Be the first to identify action.
                 </h2>
                 
-                <ul class="feature-list space-y-4 text-gray-700 mt-6">
+                <ul class="feature-list space-y-3 md:space-y-4 text-sm md:text-base text-gray-700 mt-4 md:mt-6">
                     <li class="flex items-start gap-3">
                         <i data-lucide="globe" class="w-5 h-5 text-brand-primary mt-0.5 shrink-0"></i>
                         <span><strong>Global Event Triggers:</strong> Monitor niche publications, PR, and regulatory filings.</span>
@@ -372,27 +472,27 @@
                     </li>
                 </ul>
 
-                <div class="bg-status-high_bg border-l-4 border-status-high_txt p-5 rounded-r-lg mt-6 transform transition hover:translate-x-1">
-                    <p class="text-brand-dark"><span class="font-bold">The Payoff:</span> Catch 100% of buying windows within 24 hours of a critical trigger event.</p>
+                <div class="bg-status-high_bg border-l-4 border-status-high_txt p-4 md:p-5 rounded-r-lg mt-4 md:mt-6 transform transition hover:translate-x-1">
+                    <p class="text-brand-dark text-sm md:text-base"><span class="font-bold">The Payoff:</span> Catch 100% of buying windows within 24 hours of a critical trigger event.</p>
                 </div>
             </div>
-            <div class="lg:w-1/2 relative">
-                <div class="absolute inset-0 bg-status-high_bg/60 rounded-full blur-3xl transform transition-transform duration-500 group-hover:scale-110"></div>
-                <img src="https://res.cloudinary.com/dnscrocre/image/upload/v1779566613/ChatGPT_Image_May_20_2026_12_29_11_PM_1_iw0rsi.png" alt="Signal Monitoring Dashboard" class="relative rounded-xl ui-shadow border border-gray-200/50 bg-white transform transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] z-10 w-3/4 mx-auto object-cover animate-float">
+            <div class="lg:w-1/2 relative w-full">
+                <div class="absolute inset-0 bg-brand-blue/40 rounded-full blur-2xl md:blur-3xl transform transition-transform duration-500 group-hover:scale-110"></div>
+                <img src="https://res.cloudinary.com/dnscrocre/image/upload/v1779566613/ChatGPT_Image_May_20_2026_12_29_11_PM_1_iw0rsi.png" alt="Signal Monitoring Dashboard" class="relative rounded-xl ui-shadow border border-gray-200/50 bg-white transform transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] z-10 w-full sm:w-3/4 mx-auto object-cover animate-float">
             </div>
         </div>
 
         <!-- Feature 3: Conference Prep -->
-        <div class="flex flex-col lg:flex-row items-center gap-16 group reveal">
-            <div class="lg:w-1/2 space-y-6">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider bg-brand-beige text-brand-dark border border-gray-200 shadow-sm">
-                    <i data-lucide="calendar-check" class="w-4 h-4 text-brand-primary"></i> Conference Prep
+        <div class="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 group reveal">
+            <div class="lg:w-1/2 space-y-4 md:space-y-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] md:text-xs font-bold uppercase tracking-wider bg-brand-beige text-brand-dark border border-gray-200 shadow-sm">
+                    <i data-lucide="calendar-check" class="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary"></i> Conference Prep
                 </div>
-                <h2 class="text-3xl md:text-4xl font-bold text-brand-dark leading-tight">
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-dark leading-tight">
                     Walk in with a schedule, not a hope.
                 </h2>
                 
-                <ul class="feature-list space-y-4 text-gray-700 mt-6">
+                <ul class="feature-list space-y-3 md:space-y-4 text-sm md:text-base text-gray-700 mt-4 md:mt-6">
                     <li class="flex items-start gap-3">
                         <i data-lucide="filter" class="w-5 h-5 text-brand-primary mt-0.5 shrink-0"></i>
                         <span><strong>ICP Filtering:</strong> Scan attendee lists against your exact buyer profile.</span>
@@ -411,27 +511,27 @@
                     </li>
                 </ul>
 
-                <div class="bg-brand-blue/40 border-l-4 border-brand-primary p-5 rounded-r-lg mt-6 transform transition hover:translate-x-1">
-                    <p class="text-brand-dark"><span class="font-bold">The Payoff:</span> Book 5x more qualified meetings pre-conference without manual badge scanning.</p>
+                <div class="bg-brand-blue/40 border-l-4 border-brand-primary p-4 md:p-5 rounded-r-lg mt-4 md:mt-6 transform transition hover:translate-x-1">
+                    <p class="text-brand-dark text-sm md:text-base"><span class="font-bold">The Payoff:</span> Book 5x more qualified meetings pre-conference without manual badge scanning.</p>
                 </div>
             </div>
-            <div class="lg:w-1/2 relative">
-                <div class="absolute inset-0 bg-brand-beige rounded-3xl transform -rotate-3 scale-105 transition-transform duration-500 group-hover:-rotate-6"></div>
+            <div class="lg:w-1/2 relative w-full">
+                <div class="absolute inset-0 bg-brand-beige rounded-2xl md:rounded-3xl transform -rotate-3 scale-105 transition-transform duration-500 group-hover:-rotate-6"></div>
                 <img src="https://res.cloudinary.com/dnscrocre/image/upload/v1779566614/ChatGPT_Image_May_20_2026_02_25_36_PM_rpicyk.png" alt="Conference Prep Interface" class="relative rounded-xl ui-shadow border border-gray-200/50 bg-white transform transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] z-10 w-full object-cover">
             </div>
         </div>
 
         <!-- Feature 4: CRM Sync -->
-        <div class="flex flex-col lg:flex-row-reverse items-center gap-16 group reveal">
-            <div class="lg:w-1/2 space-y-6">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider bg-brand-beige text-brand-dark border border-gray-200 shadow-sm">
-                    <i data-lucide="refresh-cw" class="w-4 h-4 text-brand-primary"></i> CRM Integration
+        <div class="flex flex-col lg:flex-row-reverse items-center gap-8 lg:gap-16 group reveal">
+            <div class="lg:w-1/2 space-y-4 md:space-y-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] md:text-xs font-bold uppercase tracking-wider bg-brand-beige text-brand-dark border border-gray-200 shadow-sm">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary"></i> CRM Integration
                 </div>
-                <h2 class="text-3xl md:text-4xl font-bold text-brand-dark leading-tight">
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-dark leading-tight">
                     Act from your native environment.
                 </h2>
                 
-                <ul class="feature-list space-y-4 text-gray-700 mt-6">
+                <ul class="feature-list space-y-3 md:space-y-4 text-sm md:text-base text-gray-700 mt-4 md:mt-6">
                     <li class="flex items-start gap-3">
                         <i data-lucide="database" class="w-5 h-5 text-brand-primary mt-0.5 shrink-0"></i>
                         <span><strong>Native Integrations:</strong> Seamless hookups with Salesforce, HubSpot, and Dynamics.</span>
@@ -450,12 +550,12 @@
                     </li>
                 </ul>
 
-                <div class="bg-brand-bg border-l-4 border-gray-400 p-5 rounded-r-lg mt-6 transform transition hover:translate-x-1 shadow-sm">
-                    <p class="text-brand-dark"><span class="font-bold">The Payoff:</span> Save commercial reps 15+ hours a week on manual research and data entry.</p>
+                <div class="bg-brand-bg border-l-4 border-gray-400 p-4 md:p-5 rounded-r-lg mt-4 md:mt-6 transform transition hover:translate-x-1 shadow-sm">
+                    <p class="text-brand-dark text-sm md:text-base"><span class="font-bold">The Payoff:</span> Save commercial reps 15+ hours a week on manual research and data entry.</p>
                 </div>
             </div>
-            <div class="lg:w-1/2 relative">
-                <div class="absolute inset-0 bg-brand-dark/5 rounded-3xl transform rotate-2 scale-105 transition-transform duration-500 group-hover:rotate-4"></div>
+            <div class="lg:w-1/2 relative w-full">
+                <div class="absolute inset-0 bg-brand-dark/5 rounded-2xl md:rounded-3xl transform rotate-2 scale-105 transition-transform duration-500 group-hover:rotate-4"></div>
                 <img src="https://res.cloudinary.com/dnscrocre/image/upload/v1779566616/ChatGPT_Image_May_20_2026_02_11_12_PM_b3gkvg.png" alt="CRM Sync Integration" class="relative rounded-xl ui-shadow border border-gray-200/50 bg-white transform transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] z-10 w-full object-cover">
             </div>
         </div>
@@ -463,32 +563,32 @@
     </section>
 
     <!-- Data Accuracy & Infrastructure -->
-    <section class="py-24 bg-[#11241f] text-white border-y border-brand-dark reveal overflow-hidden">
-        <div class="max-w-7xl mx-auto px-6 text-center">
+    <section class="py-16 md:py-24 bg-[#11241f] text-white border-y border-brand-dark reveal overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center">
             <h2 class="text-3xl md:text-5xl font-bold mb-4 tracking-tight">Why Trust Our Data Accuracy?</h2>
-            <p class="text-lg text-gray-300 max-w-2xl mx-auto mb-16">
+            <p class="text-base md:text-lg text-gray-300 max-w-2xl mx-auto mb-10 md:mb-16">
                 High-stakes decisions require uncompromised precision. Our intelligence engine turns global noise into verifiable actions.
             </p>
 
             <!-- Explainer Animation -->
-            <div class="flex items-center justify-center gap-3 md:gap-8 text-brand-blue/80 mb-16 text-sm font-medium">
-                <div class="flex flex-col items-center gap-3">
-                    <div class="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center shadow-inner border border-white/5"><i data-lucide="database" class="w-6 h-6"></i></div>
-                    <span class="uppercase tracking-wider text-xs">Extract</span>
+            <div class="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-brand-blue/80 mb-12 md:mb-16 text-sm font-medium">
+                <div class="flex flex-col items-center gap-2 md:gap-3">
+                    <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/10 flex items-center justify-center shadow-inner border border-white/5"><i data-lucide="database" class="w-5 h-5 md:w-6 md:h-6"></i></div>
+                    <span class="uppercase tracking-wider text-[10px] md:text-xs">Extract</span>
                 </div>
-                <i data-lucide="chevron-right" class="w-6 h-6 data-flow-arrow"></i>
-                <div class="flex flex-col items-center gap-3">
-                    <div class="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center shadow-inner border border-white/5"><i data-lucide="filter" class="w-6 h-6"></i></div>
-                    <span class="uppercase tracking-wider text-xs">Deduplicate</span>
+                <i data-lucide="chevron-right" class="w-5 h-5 md:w-6 md:h-6 data-flow-arrow"></i>
+                <div class="flex flex-col items-center gap-2 md:gap-3">
+                    <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/10 flex items-center justify-center shadow-inner border border-white/5"><i data-lucide="filter" class="w-5 h-5 md:w-6 md:h-6"></i></div>
+                    <span class="uppercase tracking-wider text-[10px] md:text-xs">Deduplicate</span>
                 </div>
-                <i data-lucide="chevron-right" class="w-6 h-6 data-flow-arrow"></i>
-                <div class="flex flex-col items-center gap-3">
-                    <div class="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center shadow-inner border border-white/5"><i data-lucide="tag" class="w-6 h-6"></i></div>
-                    <span class="uppercase tracking-wider text-xs">AI Classify</span>
+                <i data-lucide="chevron-right" class="w-5 h-5 md:w-6 md:h-6 data-flow-arrow"></i>
+                <div class="flex flex-col items-center gap-2 md:gap-3">
+                    <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/10 flex items-center justify-center shadow-inner border border-white/5"><i data-lucide="tag" class="w-5 h-5 md:w-6 md:h-6"></i></div>
+                    <span class="uppercase tracking-wider text-[10px] md:text-xs">AI Classify</span>
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 perspective-1000">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 perspective-1000">
                 
                 <!-- Flip Card 1 -->
                 <div class="relative w-full h-56 group cursor-default">
@@ -563,30 +663,30 @@
     </section>
 
     <!-- Footer / CTA -->
-    <section class="py-24 bg-brand-bg border-t border-gray-200 relative overflow-hidden reveal">
+    <section class="py-16 md:py-24 bg-brand-bg border-t border-gray-200 relative overflow-hidden reveal">
         <!-- Abstract Background element -->
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-brand-blue/40 blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-status-high_bg/60 blur-3xl"></div>
+        <div class="absolute top-0 right-0 -mr-10 md:-mr-20 -mt-10 md:-mt-20 w-64 md:w-96 h-64 md:h-96 rounded-full bg-brand-blue/40 blur-2xl md:blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -ml-10 md:-ml-20 -mb-10 md:-mb-20 w-56 md:w-80 h-56 md:h-80 rounded-full bg-brand-blue/40 blur-2xl md:blur-3xl"></div>
         
-        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
-            <h2 class="text-4xl md:text-5xl font-bold mb-6 text-brand-dark tracking-tight">Ready to orchestrate your BD pipeline?</h2>
-            <p class="text-xl text-gray-600 mb-12 leading-relaxed">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 text-brand-dark tracking-tight">Ready to orchestrate your BD pipeline?</h2>
+            <p class="text-base sm:text-lg md:text-xl text-gray-600 mb-8 md:mb-12 leading-relaxed">
                 Stop missing leads because no one saw the signals in time. Get access to your customized workspace and start your pilot today.
             </p>
-            <a href="mailto:vedant@lunartree.bio" class="inline-flex items-center justify-center gap-3 bg-brand-primary text-white px-10 py-5 rounded-lg font-bold text-lg transition-all hover:bg-brand-dark hover:shadow-xl hover:-translate-y-1 transform group">
-                Book Demo <i data-lucide="mail" class="w-5 h-5 text-white group-hover:scale-110 transition-transform"></i>
+            <a href="mailto:vedant@lunartree.bio" class="inline-flex items-center justify-center gap-2 md:gap-3 bg-brand-primary text-white px-8 md:px-10 py-4 md:py-5 rounded-lg font-bold text-base md:text-lg transition-all hover:bg-brand-dark hover:shadow-xl hover:-translate-y-1 transform group">
+                Book Demo <i data-lucide="mail" class="w-4 h-4 md:w-5 md:h-5 text-white group-hover:scale-110 transition-transform"></i>
             </a>
         </div>
     </section>
 
     <!-- Footer Bar -->
-    <footer class="bg-brand-dark py-8 border-t border-white/10">
-        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <a href="https://www.lunartree.bio" class="flex items-center gap-2 text-white/90 font-bold text-lg hover:opacity-80 transition-opacity">
-                <img src="lunartree_logo.jpeg" class="w-6 h-6 rounded border border-white/20" alt="Lunartree Logo">
+    <footer class="bg-brand-dark py-6 md:py-8 border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <a href="https://www.lunartree.bio" class="flex items-center gap-2 text-white/90 font-bold text-base md:text-lg hover:opacity-80 transition-opacity">
+                <img src="lunartree_logo.jpeg" class="w-5 h-5 md:w-6 md:h-6 rounded border border-white/20" alt="Lunartree Logo">
                 Lunartree
             </a>
-            <p class="text-sm text-white/50">© 2026 Lunartree.bio. All rights reserved.</p>
+            <p class="text-xs md:text-sm text-white/50 text-center sm:text-left">© 2026 Lunartree.bio. All rights reserved.</p>
         </div>
     </footer>
 
@@ -594,6 +694,147 @@
     <script>
         // Initialize Lucide Icons
         lucide.createIcons();
+        
+        // D3.js True 3D Orthographic Globe
+        function initD3Globe() {
+            const container = document.getElementById('globe-container');
+            if(!container) return;
+
+            const width = 400;
+            const height = 400;
+
+            // Append SVG strictly to background so popups stay on top
+            const svg = d3.select(container).insert('svg', ':first-child')
+                .attr('width', '100%')
+                .attr('height', '100%')
+                .attr('viewBox', `0 0 ${width} ${height}`)
+                .style('overflow', 'visible');
+
+            // 3D Orthographic projection
+            const projection = d3.geoOrthographic()
+                .scale(198)
+                .translate([width / 2, height / 2])
+                .clipAngle(90);
+
+            const path = d3.geoPath().projection(projection);
+
+            // Add Globe inner volume shadow
+            const defs = svg.append('defs');
+            const gradient = defs.append('radialGradient')
+                .attr('id', 'globe-shading')
+                .attr('cx', '35%')
+                .attr('cy', '35%')
+                .attr('r', '65%');
+            gradient.append('stop').attr('offset', '0%').attr('stop-color', '#ffffff').attr('stop-opacity', 0.6);
+            gradient.append('stop').attr('offset', '50%').attr('stop-color', '#FAF9F6').attr('stop-opacity', 0.2);
+            gradient.append('stop').attr('offset', '100%').attr('stop-color', '#153C4D').attr('stop-opacity', 0.15);
+
+            // Base Sphere/Ocean
+            svg.append('circle')
+                .attr('cx', width / 2)
+                .attr('cy', height / 2)
+                .attr('r', 198)
+                .attr('fill', '#FAF9F6')
+                .attr('stroke', '#153C4D')
+                .attr('stroke-width', 1)
+                .attr('stroke-opacity', 0.2);
+
+            const mapGroup = svg.append('g');
+
+            // Apply the volume shadow over the map and sphere
+            const overlay = svg.append('circle')
+                .attr('cx', width / 2)
+                .attr('cy', height / 2)
+                .attr('r', 198)
+                .attr('fill', 'url(#globe-shading)')
+                .style('pointer-events', 'none');
+
+            const dotsGroup = svg.append('g');
+
+            // Fetch high-fidelity World Map Topology
+            d3.json('https://unpkg.com/world-atlas@2.0.2/countries-110m.json').then(world => {
+                const countries = topojson.feature(world, world.objects.countries).features;
+
+                const countryPaths = mapGroup.selectAll('.country')
+                    .data(countries)
+                    .enter().append('path')
+                    .attr('class', 'country')
+                    .attr('d', path)
+                    .attr('fill', '#153C4D')
+                    .attr('opacity', 0.15); // Brand map color
+
+                // Ensure overlay stays above the map
+                overlay.raise();
+                dotsGroup.raise();
+
+                // Coordinates for signal dots [longitude, latitude]
+                const locations = [
+                    [-74.006, 40.7128], // NY
+                    [-122.4194, 37.7749], // SF
+                    [-71.0589, 42.3601], // Boston
+                    [2.3522, 48.8566],  // Paris
+                    [-0.1276, 51.5072], // London
+                    [7.5886, 47.5596], // Basel
+                    [139.6917, 35.6895], // Tokyo
+                    [151.2093, -33.8688] // Sydney
+                ];
+
+                // Signal Rings
+                const pings = dotsGroup.selectAll('.ping')
+                    .data(locations)
+                    .enter().append('circle')
+                    .attr('fill', 'none')
+                    .attr('stroke', '#153C4D')
+                    .attr('stroke-width', 2);
+
+                // Signal Dots
+                const dots = dotsGroup.selectAll('.dot')
+                    .data(locations)
+                    .enter().append('circle')
+                    .attr('r', 3)
+                    .attr('fill', '#153C4D');
+
+                // 3D Rotation Engine
+                d3.timer((elapsed) => {
+                    projection.rotate([elapsed * 0.015, -15]); 
+                    countryPaths.attr('d', path);
+
+                    const isVisible = d => d3.geoDistance(d, projection.invert([width/2, height/2])) < Math.PI / 2;
+
+                    dots.each(function(d) {
+                        d3.select(this)
+                            .attr('cx', projection(d)[0])
+                            .attr('cy', projection(d)[1])
+                            .style('display', isVisible(d) ? 'block' : 'none');
+                    });
+                    
+                    pings.each(function(d) {
+                        d3.select(this)
+                            .attr('cx', projection(d)[0])
+                            .attr('cy', projection(d)[1])
+                            .style('display', isVisible(d) ? 'block' : 'none');
+                    });
+                });
+
+                // Continuous pulse animation
+                function animatePings() {
+                    pings
+                        .attr('r', 3)
+                        .attr('stroke-opacity', 0.8)
+                        .transition()
+                        .duration(1500)
+                        .ease(d3.easeCubicOut)
+                        .attr('r', 18)
+                        .attr('stroke-opacity', 0)
+                        .on('end', animatePings);
+                }
+                animatePings();
+            }).catch(err => {
+                console.error('Map loading failed: ', err);
+            });
+        }
+        
+        initD3Globe();
 
         // Scroll Reveal Animation Logic
         document.addEventListener('DOMContentLoaded', () => {
